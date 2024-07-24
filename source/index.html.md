@@ -1,15 +1,8 @@
 ---
 title: API Reference
 
-language_tabs: # must be one of https://github.com/rouge-ruby/rouge/wiki/List-of-supported-languages-and-lexers
-  - shell
-  - ruby
-  - python
+language_tabs:
   - javascript
-
-toc_footers:
-  - <a href='#'>Sign Up for a Developer Key</a>
-  - <a href='https://github.com/slatedocs/slate'>Documentation Powered by Slate</a>
 
 includes:
   - errors
@@ -20,226 +13,109 @@ code_clipboard: true
 
 meta:
   - name: description
-    content: Documentation for the Kittn API
+    content: Documentation for Project AI API
 ---
 
-# Introduction
+# API del Proyecto IA 🤖
 
-Welcome to the Kittn API! You can use our API to access Kittn API endpoints, which can get information on various cats, kittens, and breeds in our database.
+Bienvenidos a la documentación de la API del proyecto IA.
+Su función es conectar patabit con assistants de Open AI para revisar verificaciones avanzadas.
 
-We have language bindings in Shell, Ruby, Python, and JavaScript! You can view code examples in the dark area to the right, and you can switch the programming language of the examples with the tabs in the top right.
-
-This example API documentation page was created with [Slate](https://github.com/slatedocs/slate). Feel free to edit it and use it as a base for your own API's documentation.
-
-# Authentication
-
-> To authorize, use this code:
-
-```ruby
-require 'kittn'
-
-api = Kittn::APIClient.authorize!('meowmeowmeow')
-```
-
-```python
-import kittn
-
-api = kittn.authorize('meowmeowmeow')
-```
-
-```shell
-# With shell, you can just pass the correct header with each request
-curl "api_endpoint_here" \
-  -H "Authorization: meowmeowmeow"
-```
+## Post to check verification
 
 ```javascript
-const kittn = require('kittn');
+const data = {
+  names: "JUAN ANDRÉS",
+  surnames: "CASTILLO PEREZ",
+  residence_address: "Cristóbal Colón 1102",
+  residence_country: "CL",
+  residence_state: "Metropolitana",
+  residence_comune: "Las Condes",
+  residence_city: "Santiago",
+  public_url: "https://prc-surbtc-patabit.s3.amazonaws.com/surbtc_documents/aaa.pdf?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=a/us-east-1/s3/aws4_request&X-Amz-Date=a&X-Amz-SignedHeaders=host&X-Amz-Signature=aa",
+  liveness_check: true
+};
 
-let api = kittn.authorize('meowmeowmeow');
-```
-
-> Make sure to replace `meowmeowmeow` with your API key.
-
-Kittn uses API keys to allow access to the API. You can register a new Kittn API key at our [developer portal](http://example.com/developers).
-
-Kittn expects for the API key to be included in all API requests to the server in a header that looks like the following:
-
-`Authorization: meowmeowmeow`
-
-<aside class="notice">
-You must replace <code>meowmeowmeow</code> with your personal API key.
-</aside>
-
-# Kittens
-
-## Get All Kittens
-
-```ruby
-require 'kittn'
-
-api = Kittn::APIClient.authorize!('meowmeowmeow')
-api.kittens.get
-```
-
-```python
-import kittn
-
-api = kittn.authorize('meowmeowmeow')
-api.kittens.get()
-```
-
-```shell
-curl "http://example.com/api/kittens" \
-  -H "Authorization: meowmeowmeow"
-```
-
-```javascript
-const kittn = require('kittn');
-
-let api = kittn.authorize('meowmeowmeow');
-let kittens = api.kittens.get();
-```
-
-> The above command returns JSON structured like this:
-
-```json
-[
-  {
-    "id": 1,
-    "name": "Fluffums",
-    "breed": "calico",
-    "fluffiness": 6,
-    "cuteness": 7
+const options = {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
   },
-  {
-    "id": 2,
-    "name": "Max",
-    "breed": "unknown",
-    "fluffiness": 5,
-    "cuteness": 10
-  }
-]
+  body: JSON.stringify(data)
+};
+
+const url = 'https://api.example.com/endpoint';
+
+fetch(url, options)
+  .then(response => response.json())
+  .then(data => {
+    console.log('Success:', data);
+  });
 ```
 
-This endpoint retrieves all kittens.
+> Esta llamada retorna un JSON con el siguiente formato:
+
+```json
+{
+  "name_validator": {
+    "name_in_document": "JUAN ANDRÉS CASTILLO",
+    "match_score": 100,
+    "veredict": "approved",
+    "reasons": [],
+  },
+  "address_validator": {
+    "address_in_document": "Cristóbal Colón 1102, Santiago",
+    "match_score": 75,
+    "veredict": "need_review",
+    "reasons": "No aparece la comuna. Se muestran diferencias en algunas caracteres.",
+  },
+  "document_completeness": {
+    "veredict": "rejected",
+    "reasons": "No se ve la esquina izquierda",
+  },
+  "document_emission_date_validator": {
+    "emission_date": "2024-07-24",
+    "veredict": "approved",
+    "reasons": [],
+  },
+  "code_validator": {
+    "document_code": true,
+    "veredict": "approved",
+    "reasons": [],
+  },
+  "final_veredict": "rejected",
+  "full_reasons": ["No aparece la comuna. Se muestran diferencias en algunas caracteres.", "No se ve la esquina izquierda"],
+}
+```
+
+Esta llamada permite mandar los datos de una verificación avanzada para que sea revisada por los assistants de Open AI.
 
 ### HTTP Request
 
-`GET http://example.com/api/kittens`
+`POST /check-verification`
 
-### Query Parameters
+### Request Payload
 
-Parameter | Default | Description
+Key | Required | Description
 --------- | ------- | -----------
-include_cats | false | If set to true, the result will also include cats.
-available | true | If set to false, the result will include kittens that have already been adopted.
+names | Yes | Nombre del usuario
+surnames | Yes | Apellidos del usuario
+residence_address | Yes | Dirección del usuario
+residence_country | Yes | País de residencia del usuario
+residence_state | Yes | Estado donde reside el usuario
+residence_comune | Yes | Comuna donde reside el usuario
+residence_city | Yes | Ciudad de residencia del usuario
+public_url | Yes | Link al documento de residencia
+liveness_check | Yes | Indica si la cuenta tiene prueba de vida o no
 
-<aside class="success">
-Remember — a happy kitten is an authenticated kitten!
-</aside>
+### General Response Details
 
-## Get a Specific Kitten
-
-```ruby
-require 'kittn'
-
-api = Kittn::APIClient.authorize!('meowmeowmeow')
-api.kittens.get(2)
-```
-
-```python
-import kittn
-
-api = kittn.authorize('meowmeowmeow')
-api.kittens.get(2)
-```
-
-```shell
-curl "http://example.com/api/kittens/2" \
-  -H "Authorization: meowmeowmeow"
-```
-
-```javascript
-const kittn = require('kittn');
-
-let api = kittn.authorize('meowmeowmeow');
-let max = api.kittens.get(2);
-```
-
-> The above command returns JSON structured like this:
-
-```json
-{
-  "id": 2,
-  "name": "Max",
-  "breed": "unknown",
-  "fluffiness": 5,
-  "cuteness": 10
-}
-```
-
-This endpoint retrieves a specific kitten.
-
-<aside class="warning">Inside HTML code blocks like this one, you can't use Markdown, so use <code>&lt;code&gt;</code> blocks to denote code.</aside>
-
-### HTTP Request
-
-`GET http://example.com/kittens/<ID>`
-
-### URL Parameters
-
-Parameter | Description
---------- | -----------
-ID | The ID of the kitten to retrieve
-
-## Delete a Specific Kitten
-
-```ruby
-require 'kittn'
-
-api = Kittn::APIClient.authorize!('meowmeowmeow')
-api.kittens.delete(2)
-```
-
-```python
-import kittn
-
-api = kittn.authorize('meowmeowmeow')
-api.kittens.delete(2)
-```
-
-```shell
-curl "http://example.com/api/kittens/2" \
-  -X DELETE \
-  -H "Authorization: meowmeowmeow"
-```
-
-```javascript
-const kittn = require('kittn');
-
-let api = kittn.authorize('meowmeowmeow');
-let max = api.kittens.delete(2);
-```
-
-> The above command returns JSON structured like this:
-
-```json
-{
-  "id": 2,
-  "deleted" : ":("
-}
-```
-
-This endpoint deletes a specific kitten.
-
-### HTTP Request
-
-`DELETE http://example.com/kittens/<ID>`
-
-### URL Parameters
-
-Parameter | Description
---------- | -----------
-ID | The ID of the kitten to delete
-
+Key | Tipo | Description
+--------- | ------- | -----------
+name_validator | {object} | Resultado de la revisión del assistant que valida el nombre del usuario
+address_validator | {object} | Resultado de la revisión del assistant que valida la dirección del usuario
+document_completeness | {object} | Resultado de la revisión del assistant que verifica que el documento no esté recortado
+document_emission_date_validator | {object} | Resultado de la revisión del assistant que verifica que extrae la fecha de emisión del documento
+code_validator | {object} | Resultado de la revisión del assistant que verifica que el documento contenga firma, sello, QR, número de referencia
+final_veredict | string | Veredicto final en base a la revisión de cada assistant. Indica si la verificaición se debe rechazar o aprobar
+full_reasons | [array] | Revisión del assistant que valida el nombre del usuario
